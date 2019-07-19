@@ -63,7 +63,8 @@ DOWNLOADER_MIDDLEWARES = {
 # Configure item pipelines
 # See https://doc.scrapy.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
-   'weiboScrapy.pipelines.WeiboscrapyPipeline': 300,
+   # 'weiboScrapy.pipelines.MongoPipeline': 300,
+   'weiboScrapy.pipelines.MySQLPipeline': 300
 }
 
 # Enable and configure the AutoThrottle extension (disabled by default)

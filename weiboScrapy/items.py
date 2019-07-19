@@ -15,9 +15,9 @@ class WeiboItem(Item):
     nick_name = Field()  # 微博昵称
     weibo_url = Field()  # 微博URL
     created_at = Field()  # 微博发表时间
-    like_num = Field()  # 点赞数
-    repost_num = Field()  # 转发数
-    comment_num = Field()  # 评论数
+    like_num = Field()  # 点赞数  int
+    repost_num = Field()  # 转发数  int
+    comment_num = Field()  # 评论数  int
     content = Field()  # 微博内容
     user_id = Field()  # 发表该微博用户的id
     image_url = Field()  # 图片
@@ -39,7 +39,7 @@ class CommentItem(Item):
     comment_user_nick_name = Field()  # 评论用户的昵称
     content = Field()  # 评论的内容
     weibo_url = Field()  # 评论的微博的url
+    like_num = Field()  # 点赞数  int
     created_at = Field()  # 评论发表时间
-    like_num = Field()  # 点赞数
-    crawl_time = Field() # 抓取时间戳
+    crawl_time = Field()  # 抓取时间戳
 

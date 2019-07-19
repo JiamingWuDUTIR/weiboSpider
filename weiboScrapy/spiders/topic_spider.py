@@ -15,23 +15,28 @@ class TopicSpider(scrapy.Spider):
     base_url = "https://weibo.cn"
 
     # 构造查询页面的url
-    key_word = '#王俊凯看张艺兴演唱会#'
-    start_time = None
-    end_time = 20190715
-    base_search_url = 'https://weibo.cn/search/mblog?'
-    page_num = 1
-    url_data = {'hideSearchFrame': '',
-                'keyword': key_word,
-                'advancedfilter': 1,
-                'endtime': end_time,
-                'sort': 'hot',   # 'time' or 'hot'
-                'page': page_num}
-    if start_time != None:
-        url_data['starttime'] = start_time
-    search_url = base_search_url + parse.urlencode(url_data)
+    key_words = ['#中国花协推荐牡丹为国花#', '#迪士尼乐园员工是假装开心#', '#韩商言借钱#',
+                '#吴亦凡剪头发#', '#李现向反黑站道歉#', '#人均垃圾产量最多国家#', '#80名儿童贴三伏贴后被灼伤#',
+                '#香港警方拘捕47人#', '#微信可同时设5个浮窗#', '#清华公布在京本科提档线#']
+    start_urls = []
+    for key_word in key_words:
+        start_time = None
+        end_time = 20190716
+        base_search_url = 'https://weibo.cn/search/mblog?'
+        page_num = 1
+        url_data = {'hideSearchFrame': '',
+                    'keyword': key_word,
+                    'advancedfilter': 1,
+                    'endtime': end_time,
+                    'sort': 'hot',   # 'time' or 'hot'
+                    'page': page_num}
+        if start_time != None:
+            url_data['starttime'] = start_time
+        search_url = base_search_url + parse.urlencode(url_data)
+        start_urls.append(search_url)
 
     # 起始爬取页面列表
-    start_urls = [search_url]
+    # start_urls = [search_url]
 
     def parse(self, response):
         # 搜索结果有多少页
@@ -51,15 +56,17 @@ class TopicSpider(scrapy.Spider):
             try:
                 weibo_item = WeiboItem()
                 # weibo_item['crawl_time'] = int(time.time())
-                weibo_item['crawl_time'] = time.strftime("%Y%m%d %H:%M", time.localtime())
+                weibo_item['crawl_time'] = time.strftime("%Y-%m-%d %H:%M", time.localtime())
                 weibo_item['nick_name'] = weibo_node.xpath('.//a[@class="nk"]/text()')[-1]
 
                 # 如果是搜索结果的到的微博，保留搜索的query
                 search_query = re.search(r'keyword=(.*?)&advancedfilter', response.url)
                 if search_query:
                     weibo_item['search_query'] = parse.unquote(search_query.group(1))
+                else:
+                    weibo_item['search_query'] = 'None'
 
-                # 获取微博id 和 url
+                    # 获取微博id 和 url
                 weibo_repost_url = weibo_node.xpath('.//a[contains(text(),"转发[")]/@href')[0]
                 user_weibo_id = re.search(r'/repost/(.*?)\?uid=(\d+)', weibo_repost_url)  # 微博和用户id在转发的url里有
                 weibo_item['_id'] = '{}_{}'.format(user_weibo_id.group(2), user_weibo_id.group(1))
@@ -73,6 +80,7 @@ class TopicSpider(scrapy.Spider):
                     weibo_item['tool'] = create_time_info.split('来自')[1].strip()
                 else:
                     weibo_item['created_at'] = time_fix(create_time_info.strip())
+                    weibo_item['tool'] = 'None'
 
                 # 转评赞信息
                 like_num = weibo_node.xpath('.//a[contains(text(),"赞[")]/text()')[-1]
@@ -89,10 +97,14 @@ class TopicSpider(scrapy.Spider):
                 images = weibo_node.xpath('.//img[@alt="图片"]/@src')
                 if images:
                     weibo_item['image_url'] = images[0]
+                else:
+                    weibo_item['image_url'] = 'None'
 
                 videos = weibo_node.xpath('.//a[contains(@href,"https://m.weibo.cn/s/video/show?object_id=")]/@href')
                 if videos:
                     weibo_item['video_url'] = videos[0]
+                else:
+                    weibo_item['video_url'] = 'None'
 
                 # 位置信息，包括经纬度和位置
                 map_node = weibo_node.xpath('.//a[contains(text(),"显示地图")]')
@@ -102,6 +114,9 @@ class TopicSpider(scrapy.Spider):
                     map_info = re.search(r'xy=(.*?)&', map_node_url).group(1)
                     weibo_item['location_map_info'] = map_info
                     weibo_item['location'] = map_node.xpath('./preceding-sibling::a/text()')[0]
+                else:
+                    weibo_item['location_map_info'] = 'None'
+                    weibo_item['location'] = 'None'
 
                 repost_node = weibo_node.xpath('.//a[contains(text(),"原文评论[")]/@href')
                 if repost_node:  # 如果是转发微博
@@ -113,6 +128,8 @@ class TopicSpider(scrapy.Spider):
                     yield Request(repost_node[0], callback=self.parse_origin_weibo_content, meta={'item': weibo_item},
                                   priority=2)
                 else:  # 是原创微博
+                    weibo_item['origin_weibo_url'] = 'None'
+                    weibo_item['origin_weibo_content'] = 'None'  # 无转发原博
                     all_content_link = weibo_node.xpath('.//a[text()="全文" and contains(@href,"ckAll=1")]')
                     if all_content_link:   # 如果有阅读全文
                         all_content_url = self.base_url + all_content_link[0].xpath('./@href')[0]
@@ -169,7 +186,7 @@ class TopicSpider(scrapy.Spider):
                     continue
                 comment_item = CommentItem()
                 # comment_item['crawl_time'] = int(time.time())
-                comment_item['crawl_time'] = time.strftime("%Y%m%d %H:%M", time.localtime())
+                comment_item['crawl_time'] = time.strftime("%Y-%m-%d %H:%M", time.localtime())
                 comment_item['weibo_url'] = response.meta['weibo_url']
                 comment_item['comment_user_id'] = re.search(r'/u/(\d+)', comment_user_url[0]).group(1)
                 comment_item['comment_user_nick_name'] = comment_node.xpath('.//a[contains(@href,"/u/")]/text()')[-1]
