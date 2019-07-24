@@ -51,6 +51,7 @@ class MySQLPipeline(object):
     记得修改setting，确定使用哪个pipeline class
     """
     def __init__(self):
+        # 在这里修改mysql服务器地址和端口，以及数据库名称
         self.coon = mysql.connector.connect(user='root', password='password',
                                             host="localhost", port='3306')
         self.cursor = self.coon.cursor(buffered=True)

@@ -18,13 +18,12 @@ class CookieMiddleware(object):
             'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:67.0) Gecko/20100101 Firefox/67.0',
             'Host': 'weibo.cn',
-            'Cookie': 'SCF=ApV1BCmMYetZvj4B-9f2ekkVyDGxORKOB5cy_5J92qfztKXpmClcQtV-VPb6y9qCoBfU8HZo-bkMoawt0ZKn7n0.; SUHB=0mxEbbiSWdudki; ALF=1564365111; SUB=_2A25wE39ODeRhGeVO7FQU-SvIzDuIHXVT_AEGrDV6PUJbkdBeLWjDkW1NTWfvi3F-K2ssSrJL5rEOe9Diy0N8VOvt; SSOLoginState=1561792286; _T_WM=d390f570f5d8305d33078b999f690952',
+            'Cookie': 'xxx',
             "Accept-Language": "zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2",
             "Accept-Encoding": "gzip, deflate, br",
             "Connection": "keep-alive"
         }
         request.headers = Headers(headers)
-
 
 
 class WeiboscrapySpiderMiddleware(object):
